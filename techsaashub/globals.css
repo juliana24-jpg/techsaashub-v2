@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * ─────────────────────────────────────────────────────────
+ * Design tokens
+ * All colors are HSL triplets (no `hsl()` wrapper) so Tailwind
+ * can compose them with opacity modifiers, e.g. bg-primary/10.
+ *
+ * Brand source hex -> HSL (contrast-checked against WCAG AA):
+ *   background  #050816  -> 229 63%  5%
+ *   primary     #4F8CFF  -> 219 100% 65%   (paired with dark fg, 6.05:1)
+ *   secondary   #7C3AED  -> 262 83%  58%   (paired with light fg, 5.79:1)
+ *   accent      #00E5FF  -> 186 100% 50%   (paired with dark fg, 12.5:1)
+ * ─────────────────────────────────────────────────────────
+ */
+@layer base {
+  :root {
+    --background: 229 63% 5%;
+    --foreground: 220 40% 98%;
+
+    --card: 229 45% 8%;
+    --card-foreground: 220 40% 98%;
+
+    --popover: 229 40% 7%;
+    --popover-foreground: 220 40% 98%;
+
+    --primary: 219 100% 65%;
+    --primary-foreground: 229 60% 6%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 220 40% 98%;
+
+    --accent: 186 100% 50%;
+    --accent-foreground: 229 60% 6%;
+
+    --muted: 229 30% 13%;
+    --muted-foreground: 222 20% 64%;
+
+    --destructive: 0 84% 63%;
+    --destructive-foreground: 220 40% 98%;
+
+    --success: 152 69% 45%;
+    --success-foreground: 220 40% 98%;
+
+    --border: 229 25% 17%;
+    --input: 229 25% 17%;
+    --ring: 186 100% 50%;
+
+    /* used only with an explicit alpha modifier, e.g. bg-glass-border/10 */
+    --glass-border: 220 40% 98%;
+
+    --radius: 1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "cv01";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-foreground;
+  }
+
+  /* Accessible, visible focus ring for keyboard navigation everywhere */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background;
+  }
+
+  /* Slim, on-brand scrollbar (WebKit) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+    border: 2px solid hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-color: hsl(var(--border)) hsl(var(--background));
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────
+ * Reusable design-language utilities: glassmorphism, glow,
+ * gradient text, ambient grid backdrop, skip link.
+ * ─────────────────────────────────────────────────────────
+ */
+@layer components {
+  /* Standard glass panel used by cards, nav, modals */
+  .glass {
+    @apply relative rounded-2xl border border-white/[0.08] bg-white/[0.035] shadow-glass backdrop-blur-xl;
+  }
+
+  /* Denser glass for content-heavy surfaces (nav bar, dropdowns) */
+  .glass-strong {
+    @apply relative border border-white/[0.08] bg-card/80 shadow-glass-sm backdrop-blur-2xl;
+  }
+
+  /* Thin 1px gradient border ring, layered under .glass for a "lit edge" */
+  .glass-edge {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.5),
+      hsl(var(--glass-border) / 0.06) 35%,
+      hsl(var(--accent) / 0.35)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-brand bg-clip-text text-transparent;
+  }
+
+  /* Faint animated grid, meant to sit behind hero content with a radial fade mask */
+  .bg-grid-fade {
+    background-image: linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  /* Skip-to-content link: hidden until keyboard-focused */
+  .skip-link {
+    @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-3 text-sm font-medium text-background transition-transform duration-200 focus:translate-y-0;
+  }
+
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted-foreground)) 0%,
+      hsl(var(--foreground)) 50%,
+      hsl(var(--muted-foreground)) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 2.5s linear infinite;
+  }
+}

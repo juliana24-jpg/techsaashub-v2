@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * ─────────────────────────────────────────────────────────
+ * Design tokens
+ * All colors are HSL triplets (no `hsl()` wrapper) so Tailwind
+ * can compose them with opacity modifiers, e.g. bg-primary/10.
+ *
+ * Brand hues (primary/secondary/accent) are identical in both
+ * themes — only the neutrals (background/foreground/card/border/
+ * muted) and shadow recipes change between dark and light.
+ *
+ * Brand source hex -> HSL (contrast-checked against WCAG AA):
+ *   background  #050816  -> 229 63%  5%   (dark theme only)
+ *   primary     #4F8CFF  -> 219 100% 65%  (paired with dark fg, 6.05:1)
+ *   secondary   #7C3AED  -> 262 83%  58%  (paired with light fg, 5.79:1)
+ *   accent      #00E5FF  -> 186 100% 50%  (paired with dark fg, 12.5:1)
+ * ─────────────────────────────────────────────────────────
+ */
+@layer base {
+  :root {
+    /* Dark theme — the brand default. Also serves as the no-JS fallback. */
+    --background: 229 63% 5%;
+    --foreground: 220 40% 98%;
+
+    --card: 229 45% 8%;
+    --card-foreground: 220 40% 98%;
+
+    --popover: 229 40% 7%;
+    --popover-foreground: 220 40% 98%;
+
+    --primary: 219 100% 65%;
+    --primary-foreground: 229 60% 6%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 220 40% 98%;
+
+    --accent: 186 100% 50%;
+    --accent-foreground: 229 60% 6%;
+
+    --muted: 229 30% 13%;
+    --muted-foreground: 222 20% 64%;
+
+    --destructive: 0 84% 63%;
+    --destructive-foreground: 220 40% 98%;
+
+    --success: 152 69% 45%;
+    --success-foreground: 220 40% 98%;
+
+    --border: 229 25% 17%;
+    --input: 229 25% 17%;
+    --ring: 186 100% 50%;
+
+    --radius: 1rem;
+
+    /* Glass panels pick up --foreground as their tint, so they invert
+       correctly per theme (white-tinted frost on dark, dark-tinted on light). */
+    --shadow-glass: 0 1px 1px 0 hsla(0, 0%, 100%, 0.06) inset,
+      0 -1px 1px 0 hsla(0, 0%, 0%, 0.2) inset, 0 20px 40px -12px hsla(229, 60%, 2%, 0.6);
+    --shadow-glass-sm: 0 1px 1px 0 hsla(0, 0%, 100%, 0.05) inset,
+      0 12px 24px -10px hsla(229, 60%, 2%, 0.55);
+  }
+
+  .light {
+    --background: 230 40% 98%;
+    --foreground: 229 45% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 229 45% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 229 45% 9%;
+
+    --muted: 225 25% 94%;
+    --muted-foreground: 222 15% 40%;
+
+    --border: 225 20% 88%;
+    --input: 225 20% 88%;
+
+    --shadow-glass: 0 1px 1px 0 hsla(0, 0%, 100%, 0.8) inset,
+      0 -1px 1px 0 hsla(229, 30%, 80%, 0.4) inset, 0 20px 40px -12px hsla(229, 30%, 60%, 0.2);
+    --shadow-glass-sm: 0 1px 1px 0 hsla(0, 0%, 100%, 0.7) inset,
+      0 12px 24px -10px hsla(229, 30%, 60%, 0.15);
+
+    /* primary/secondary/accent/*-foreground/destructive/success are brand-constant
+       and intentionally not overridden here. */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "cv01";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent/25 text-foreground;
+  }
+
+  /* Accessible, visible focus ring for keyboard navigation everywhere */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-background;
+  }
+
+  /* Slim, on-brand scrollbar (WebKit) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+    border: 2px solid hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-color: hsl(var(--border)) hsl(var(--background));
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/**
+ * ─────────────────────────────────────────────────────────
+ * Reusable design-language utilities: glassmorphism, glow,
+ * gradient text, ambient grid backdrop, skip link.
+ * ─────────────────────────────────────────────────────────
+ */
+@layer components {
+  /* Standard glass panel used by cards, nav, modals */
+  .glass {
+    @apply relative rounded-2xl backdrop-blur-xl;
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    background-color: hsl(var(--foreground) / 0.035);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Denser glass for content-heavy surfaces (nav bar, dropdowns) */
+  .glass-strong {
+    @apply relative bg-card/80 backdrop-blur-2xl;
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    box-shadow: var(--shadow-glass-sm);
+  }
+
+  /* Thin 1px gradient border ring, layered under .glass for a "lit edge" */
+  .glass-edge {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary) / 0.5),
+      hsl(var(--foreground) / 0.06) 35%,
+      hsl(var(--accent) / 0.35)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-brand bg-clip-text text-transparent;
+  }
+
+  /* Faint animated grid, meant to sit behind hero content with a radial fade mask */
+  .bg-grid-fade {
+    background-image: linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  /* Skip-to-content link: hidden until keyboard-focused */
+  .skip-link {
+    @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-foreground px-4 py-3 text-sm font-medium text-background transition-transform duration-200 focus:translate-y-0;
+  }
+
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted-foreground)) 0%,
+      hsl(var(--foreground)) 50%,
+      hsl(var(--muted-foreground)) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 2.5s linear infinite;
+  }
+}
